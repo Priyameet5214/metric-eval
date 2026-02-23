@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Activity, X } from "lucide-react";
 import {
   Card,
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { MetricIngestResponse } from "@/lib/supabase";
+import { getMetricNames } from "@/lib/metrics";
 
 function SimulatorContent() {
   const [metricName, setMetricName] = useState("");
@@ -23,6 +24,41 @@ function SimulatorContent() {
   const [triggeredAlerts, setTriggeredAlerts] = useState<
     MetricIngestResponse["triggered_alerts"]
   >([]);
+
+  const [metricSuggestions, setMetricSuggestions] = useState<string[]>([]);
+  const [metricDropdownOpen, setMetricDropdownOpen] = useState(false);
+  const [loadingMetricNames, setLoadingMetricNames] = useState(false);
+  const metricDropdownRef = useRef<HTMLDivElement>(null);
+  const metricSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  const fetchMetricSuggestions = useCallback(async (search: string) => {
+    setLoadingMetricNames(true);
+    try {
+      const names = await getMetricNames(search || undefined);
+      setMetricSuggestions(names);
+      setMetricDropdownOpen(true);
+    } catch {
+      setMetricSuggestions([]);
+    } finally {
+      setLoadingMetricNames(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        metricDropdownRef.current &&
+        !metricDropdownRef.current.contains(event.target as Node)
+      ) {
+        setMetricDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!triggeredAlerts.length) return;
@@ -55,12 +91,19 @@ function SimulatorContent() {
     setError(null);
     setResult(null);
 
-    const payload: Record<string, unknown> = {
-      metric_name: trimmedName,
-      value: numericValue,
-    };
-
     try {
+      const names = await getMetricNames(trimmedName);
+      if (!names.includes(trimmedName)) {
+        setError("Metric name must match an existing metric.");
+        setTriggeredAlerts([]);
+        return;
+      }
+
+      const payload: Record<string, unknown> = {
+        metric_name: trimmedName,
+        value: numericValue,
+      };
+
       const response = await fetch("/api/metrics", {
         method: "POST",
         headers: {
@@ -140,15 +183,62 @@ function SimulatorContent() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-2">
+            <div className="grid gap-2" ref={metricDropdownRef}>
               <Label htmlFor="metric-name">Metric name</Label>
-              <Input
-                id="metric-name"
-                placeholder="e.g. cpu_usage"
-                value={metricName}
-                onChange={(event) => setMetricName(event.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="metric-name"
+                  placeholder="e.g. cpu_usage"
+                  value={metricName}
+                  autoComplete="off"
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setMetricName(value);
+                    if (metricSearchTimeoutRef.current) {
+                      clearTimeout(metricSearchTimeoutRef.current);
+                    }
+                    metricSearchTimeoutRef.current = setTimeout(() => {
+                      fetchMetricSuggestions(value);
+                      metricSearchTimeoutRef.current = null;
+                    }, 200);
+                  }}
+                  onFocus={() => fetchMetricSuggestions(metricName)}
+                  required
+                />
+                {metricDropdownOpen && (
+                  <ul
+                    className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-input bg-popover py-1 text-sm shadow-md"
+                    role="listbox"
+                  >
+                    {loadingMetricNames ? (
+                      <li className="px-3 py-2 text-muted-foreground">
+                        Loading…
+                      </li>
+                    ) : metricSuggestions.length === 0 ? (
+                      <li className="px-3 py-2 text-muted-foreground">
+                        No metrics found. Use an existing metric name.
+                      </li>
+                    ) : (
+                      metricSuggestions.map((name) => (
+                        <li
+                          key={name}
+                          role="option"
+                          aria-selected={metricName === name}
+                          tabIndex={0}
+                          className="cursor-pointer px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            setMetricName(name);
+                            setMetricDropdownOpen(false);
+                          }}
+                        >
+                          {name}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                )}
+              </div>
             </div>
 
             <div className="grid gap-2">
