@@ -4,6 +4,8 @@ A full-stack real-time metric alerting system that allows users to configure ale
 
 This project demonstrates clean architecture, domain separation, reliability awareness, and scalable design thinking.
 
+deployment link - https://metric-eval-beta.vercel.app/
+
 ---
 
 # 1. Overview
