@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { getMetricNames } from "@/lib/metrics";
 import type { Alert, Comparator } from "@/lib/supabase";
 
 const COMPARATORS: { value: Comparator; label: string }[] = [
@@ -48,6 +49,37 @@ export function AlertForm({
     comparator: (alert?.comparator ?? "GT") as Comparator,
     threshold: alert?.threshold != null ? String(alert.threshold) : "",
   });
+  const [metricSuggestions, setMetricSuggestions] = useState<string[]>([]);
+  const [metricDropdownOpen, setMetricDropdownOpen] = useState(false);
+  const [loadingMetricNames, setLoadingMetricNames] = useState(false);
+  const metricDropdownRef = useRef<HTMLDivElement>(null);
+  const metricSearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchMetricSuggestions = useCallback(async (search: string) => {
+    setLoadingMetricNames(true);
+    try {
+      const names = await getMetricNames(search || undefined);
+      setMetricSuggestions(names);
+      setMetricDropdownOpen(true);
+    } catch {
+      setMetricSuggestions([]);
+    } finally {
+      setLoadingMetricNames(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        metricDropdownRef.current &&
+        !metricDropdownRef.current.contains(e.target as Node)
+      ) {
+        setMetricDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     setError(null);
@@ -137,18 +169,63 @@ export function AlertForm({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+            <div className="space-y-2" ref={metricDropdownRef}>
               <Label htmlFor="metric_name">Metric name</Label>
-              <Input
-                id="metric_name"
-                name="metric_name"
-                placeholder="e.g. cpu_usage"
-                defaultValue={alert?.metric_name ?? ""}
-                onChange={(e) =>
-                  setFormPreview((p) => ({ ...p, metric_name: e.target.value }))
-                }
-                className={errors?.metric_name ? "border-destructive" : ""}
-              />
+              <div className="relative">
+                <Input
+                  id="metric_name"
+                  name="metric_name"
+                  placeholder="e.g. cpu_usage"
+                  value={formPreview.metric_name}
+                  autoComplete="off"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormPreview((p) => ({ ...p, metric_name: value }));
+                    if (metricSearchTimeoutRef.current) {
+                      clearTimeout(metricSearchTimeoutRef.current);
+                    }
+                    metricSearchTimeoutRef.current = setTimeout(() => {
+                      fetchMetricSuggestions(value);
+                      metricSearchTimeoutRef.current = null;
+                    }, 200);
+                  }}
+                  onFocus={() => fetchMetricSuggestions(formPreview.metric_name)}
+                  className={errors?.metric_name ? "border-destructive" : ""}
+                />
+                {metricDropdownOpen && (
+                  <ul
+                    className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-input bg-popover py-1 text-sm shadow-md"
+                    role="listbox"
+                  >
+                    {loadingMetricNames ? (
+                      <li className="px-3 py-2 text-muted-foreground">
+                        Loading…
+                      </li>
+                    ) : metricSuggestions.length === 0 ? (
+                      <li className="px-3 py-2 text-muted-foreground">
+                        No previous metrics. Type a new name.
+                      </li>
+                    ) : (
+                      metricSuggestions.map((name) => (
+                        <li
+                          key={name}
+                          role="option"
+                          aria-selected={formPreview.metric_name === name}
+                          tabIndex={0}
+                          className="cursor-pointer px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setFormPreview((p) => ({ ...p, metric_name: name }));
+                            setMetricDropdownOpen(false);
+                          }}
+                        >
+                          {name}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                )}
+              </div>
               {errors?.metric_name && (
                 <p className="text-xs text-destructive">{errors.metric_name}</p>
               )}

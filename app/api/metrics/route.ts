@@ -105,6 +105,7 @@ export async function POST(request: Request) {
   let evaluated = 0;
   let triggered = 0;
   let cooldown_skipped = 0;
+  const triggered_alerts: MetricIngestResponse["triggered_alerts"] = [];
 
   for (const alert of (alerts ?? []) as Alert[]) {
     evaluated += 1;
@@ -154,6 +155,11 @@ export async function POST(request: Request) {
     }
 
     triggered += 1;
+    triggered_alerts.push({
+      id: alert.id,
+      metric_name: alert.metric_name,
+      message: alert.message,
+    });
   }
 
   const response: MetricIngestResponse = {
@@ -161,6 +167,7 @@ export async function POST(request: Request) {
     evaluated,
     triggered,
     cooldown_skipped,
+    triggered_alerts,
   };
 
   return NextResponse.json(response);

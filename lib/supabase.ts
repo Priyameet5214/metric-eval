@@ -118,6 +118,11 @@ export interface MetricIngestResponse {
   evaluated: number;
   triggered: number;
   cooldown_skipped: number;
+  triggered_alerts: {
+    id: UUID;
+    metric_name: string;
+    message: string;
+  }[];
 }
 
 /** Generic API error shape */

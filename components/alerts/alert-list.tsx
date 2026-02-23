@@ -85,9 +85,9 @@ export function AlertList({
           key={alert.id}
           className="rounded-xl border border-border/60 bg-card shadow-sm"
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
+          <CardHeader className="pb-0">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-medium">
                   {alert.metric_name}
                 </CardTitle>
@@ -124,7 +124,7 @@ export function AlertList({
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-sm text-foreground">{alert.message}</p>
+            <p className="text-sm text-foreground text-red-400">{alert.message}</p>
             {alert.last_triggered_at && (
               <p className="text-xs text-muted-foreground mt-2">
                 Last triggered: {formatDate(alert.last_triggered_at)}
