@@ -1,109 +1,323 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# MetricGuard – Real-Time Metric Alerting Platform
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+A full-stack real-time metric alerting system that allows users to configure alert rules, ingest metric data, evaluate breaches, and view alert history.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+This project demonstrates clean architecture, domain separation, reliability awareness, and scalable design thinking.
 
-## Features
+---
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+# 1. Overview
 
-## Demo
+MetricGuard is a simple monitoring and alerting System
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+Users can:
 
-## Deploy to Vercel
+- Create alert rules (threshold + comparator + cooldown)
+- Simulate metric values
+- Automatically evaluate metrics against configured alerts
+- View alert trigger history
+- Control alert firing behavior with cooldown
 
-Vercel deployment will guide you through creating a Supabase account and project.
+---
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+# 2. Design Principles Followed
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+## 1. Separation of Concerns
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+- Next API routes handle HTTP requests and responses.
+- Logic lives inside an Alert Engine module.
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
 
-## Clone and run locally
+## 2. Domain logic
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+- Alerts are the preset rules.
+- Metrics are raw data inputs simulating live data.
+- Alert events are immutable records of triggered alerts.
 
-2. Create a Next.js app using the Supabase Starter template npx command
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+## 3. Reliability
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+- Input validation at API entry.
+- Proper HTTP status response codes.
+- Cooldown prevents alert storms.
+- RLS enforces User data isolation.
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+## 4. Production-Oriented Thinking
 
-3. Use `cd` to change into the app's directory
+- Indexes on `(user_id, metric_name)`
+- Pagination for alert events
+- Immutable event modeling
+- Explicit comparator support (GT, LT, GTE, LTE, EQ)
 
-   ```bash
-   cd with-supabase-app
-   ```
+---
 
-4. Rename `.env.example` to `.env.local` and update the following:
+# 3. Tech Stack
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+## Frontend
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase Auth (email/password)
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+## Backend
+- Next.js Route Handlers
+- Supabase Postgres
 
-5. You can now run the Next.js local development server:
+## Database
+- Postgres (via Supabase)
 
-   ```bash
-   npm run dev
-   ```
+---
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+# 4. Information Architecture
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## Entities
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+### Alerts
+Configuration rules created by users.
 
-## Feedback and issues
+Fields:
+- id
+- user_id
+- metric_name
+- threshold
+- comparator (GT, LT, GTE, LTE, EQ)
+- cooldown_seconds
+- last_triggered_at
+- created_at
+- updated_at
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+### Metrics
+Raw ingested metric values.
 
-## More Supabase examples
+Fields:
+- id
+- user_id
+- metric_name
+- value
+- recorded_at
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### Alert Events
+Immutable records created when alerts fire.
+
+Fields:
+- id
+- user_id
+- alert_id
+- metric_name
+- metric_value
+- timestamp
+- alert_message
+
+---
+
+## Key Workflow
+
+### Metric Ingestion Flow
+
+1. Validate request body.
+2. Persist metric.
+3. Fetch alerts matching `(user_id, metric_name)`.
+4. For each alert:
+   - Evaluate comparator.
+   - Check cooldown.
+   - Insert alert_event if triggered.
+   - Update last_triggered_at.
+5. Return evaluation summary:
+   - evaluated
+   - triggered
+   - cooldown_skipped
+
+---
+
+# 5. Assumptions and Design Trade-offs
+
+## Alert Firing Behavior
+
+Current implementation:
+
+- Alerts fire when comparator passes AND cooldown is not active.
+- If cooldown is 0, alerts fire for every qualifying metric.
+- Repeated firing during cooldown window is suppressed.
+
+### Edge Case: Continuous Breach
+
+If metric continuously remains above threshold:
+- Alerts may fire again once cooldown expires.
+- The system does not currently track state transitions (OK → BREACH).
+
+### Solution: State-Based Firing
+- An ideal solution to the above issue is state-based firing, that is if the alert trigers only when state changes, that is if a metric is constantly breached the system doesnt continuously alert.
+- Another simpler solution could be not firing if at a constant value, only if value changes
+- We have not implemented these solutions as we do not have a data stream but just form based metrics for simulation so these would only be increasing complexity.
+
+
+---
+
+## Synchronous vs Asynchronous Evaluation
+
+Current approach:
+- Evaluation is synchronous inside `/api/metrics`.
+
+Trade-off:
+- Simpler logic.
+- Deterministic results.
+- Lower architectural complexity.
+
+Production alternative:
+- Push metrics to a message queue.
+- Process alerts asynchronously via workers.
+- Improves scalability and resilience.
+
+---
+
+## Duplicate Alert Events
+
+Currently:
+- Duplicate events can occur if cooldown is 0 and repeated metric values are ingested.
+
+Production alternative:
+- Add state-based firing logic.
+- Or introduce deduplication window.
+- Or use event idempotency keys.
+
+---
+
+## Metric Persistence
+
+Metrics are stored permanently.
+
+Trade-off:
+- Better auditability.
+- Enables historical analytics.
+- Slight storage overhead.
+
+Production improvement:
+- TTL-based retention.
+- Aggregation storage (e.g., hourly buckets).
+
+---
+
+## Multi-User Support
+
+System supports multiple users via Supabase Auth.
+
+- Each table contains `user_id`.
+- Row Level Security ensures isolation.
+- All queries scoped to authenticated user.
+
+---
+
+## Comparator Support
+
+Supported:
+- GT
+- LT
+- GTE
+- LTE
+- EQ
+
+Extensible design allows adding:
+- BETWEEN
+- RANGE
+- Percentage-based thresholds
+
+### Should alerts fire repeatedly for every breach?
+Current: Yes, unless cooldown suppresses, as we have low amount of data instead of a data stream.  
+Future: Prefer state-transition-based firing.
+
+### Should cooldown be implemented?
+Yes. Cooldown is configurable per alert.
+
+### Should the system support multiple users?
+Yes. Implemented with Supabase Auth and RLS.
+
+---
+
+# 6. Reliability Considerations
+
+## Input Validation
+- Strong type guards at API boundary.
+- ISO timestamp validation.
+- Numeric parsing protection.
+
+## Idempotency
+- Metric ingestion is not idempotent by design.
+- Each ingestion is treated as a new data point.
+- Alert events are immutable.
+
+## Backpressure
+- Current system processes synchronously.
+- High ingestion rates would increase API latency.
+
+Production improvement:
+- Queue-based ingestion.
+- Rate limiting.
+- Circuit breakers.
+
+---
+
+# 6. Performance and Scalability
+
+## Current Optimizations
+
+- Indexed queries on `(user_id, metric_name)`
+- Pagination on alert events
+- Server-side sorting (newest first)
+- Minimal DB round-trips
+
+
+## How to Scale
+
+- Move evaluation to background worker.
+- Batch alert updates in transactions.
+- Introduce Redis cache for alert rules.
+- Use event streaming for metric ingestion.
+- Partition metrics table by time.
+
+---
+
+# 5. Setup and Run Instructions
+
+## 1. Clone Repository
+
+git clone <repo>
+
+## 2. Install Dependencies
+
+npm i
+
+## 3. Configure Environment Variables
+
+Create `.env.local`:
+
+## 4. Run Development Server
+
+npm run dev
+
+App runs at:
+
+---
+
+# 6. Future Improvements
+
+- State-transition-based alert firing
+- WebSocket live metric streaming
+- Async evaluation pipeline
+- Alert severity levels
+- Role-based access control
+- Real-time dashboard updates
+- Dockerization
+
+---
+
+# 7. Conclusion
+
+MetricGuard demonstrates:
+
+- Clean full-stack architecture
+- Thoughtful domain modeling
+- Practical reliability handling
+- Extensible system design
+- Production-aware trade-offs
+
+The system is intentionally simple yet structured in a way that enables straightforward scaling and evolution into a distributed alerting engine.
