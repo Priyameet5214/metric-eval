@@ -223,7 +223,7 @@ function SimulatorContent() {
                         <li
                           key={name}
                           role="option"
-                          aria-selected={metricName === name}
+                          aria-selected={metricName.toLowerCase() === name.toLowerCase()}
                           tabIndex={0}
                           className="cursor-pointer px-3 py-2 hover:bg-accent hover:text-accent-foreground"
                           onMouseDown={(event) => {

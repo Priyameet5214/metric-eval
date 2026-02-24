@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     .from("alerts")
     .select("*")
     .eq("user_id", user.id)
-    .eq("metric_name", metric_name);
+    .ilike("metric_name", metric_name);
 
   if (alertsError) {
     console.error("Alerts fetch error:", alertsError);

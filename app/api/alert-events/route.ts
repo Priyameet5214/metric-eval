@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     .limit(queryLimit);
 
   if (metricName) {
-    query = query.eq("metric_name", metricName);
+    query = query.ilike("metric_name", metricName);
   }
 
   if (alertId) {

@@ -210,7 +210,7 @@ export function AlertForm({
                         <li
                           key={name}
                           role="option"
-                          aria-selected={formPreview.metric_name === name}
+                          aria-selected={formPreview.metric_name.toLowerCase() === name.toLowerCase()}
                           tabIndex={0}
                           className="cursor-pointer px-3 py-2 hover:bg-accent hover:text-accent-foreground"
                           onMouseDown={(e) => {
