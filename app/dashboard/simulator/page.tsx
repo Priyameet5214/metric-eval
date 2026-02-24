@@ -18,6 +18,7 @@ import { getMetricNames } from "@/lib/metrics";
 function SimulatorContent() {
   const [metricName, setMetricName] = useState("");
   const [value, setValue] = useState("");
+  const [sliderValue, setSliderValue] = useState(50);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MetricIngestResponse | null>(null);
@@ -68,11 +69,8 @@ function SimulatorContent() {
     return () => clearTimeout(timer);
   }, [triggeredAlerts]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const trimmedName = metricName.trim();
-    const trimmedValue = value.trim();
+  async function sendMetric(name: string, numericValue: number) {
+    const trimmedName = name.trim();
 
     if (!trimmedName) {
       setError("Metric name is required.");
@@ -80,8 +78,7 @@ function SimulatorContent() {
       return;
     }
 
-    const numericValue = Number(trimmedValue);
-    if (!trimmedValue || Number.isNaN(numericValue)) {
+    if (Number.isNaN(numericValue)) {
       setError("Value must be a valid number.");
       setResult(null);
       return;
@@ -130,6 +127,15 @@ function SimulatorContent() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const trimmedValue = value.trim();
+
+    const numericValue = Number(trimmedValue);
+    await sendMetric(metricName, numericValue);
   }
 
   return (
@@ -274,6 +280,39 @@ function SimulatorContent() {
               </Button>
             </div>
           </form>
+
+          <div className="mt-6 space-y-3 rounded-md border border-border/60 bg-muted/40 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Quick slider simulation</p>
+                <p className="text-xs text-muted-foreground">
+                  Move the slider and send a value for the selected metric.
+                </p>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Current value: {sliderValue}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={sliderValue}
+              onChange={(event) => setSliderValue(Number(event.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => sendMetric(metricName, sliderValue)}
+              >
+                Send slider value
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </>
