@@ -258,7 +258,7 @@ Production improvement:
 
 ---
 
-# 6. Performance and Scalability
+# 7. Performance and Scalability
 
 ## Current Optimizations
 
@@ -278,7 +278,7 @@ Production improvement:
 
 ---
 
-# 5. Setup and Run Instructions
+# 8. Setup and Run Instructions
 
 ## 1. Clone Repository
 
@@ -291,6 +291,7 @@ npm i
 ## 3. Configure Environment Variables
 
 Create `.env.local`:
+Environment Variables shared via mail
 
 ## 4. Run Development Server
 
@@ -298,28 +299,27 @@ npm run dev
 
 App runs at:
 
+localhost:3000
 ---
 
 # 6. Future Improvements
 
 - State-transition-based alert firing
 - WebSocket live metric streaming
+- More ways to simulate metrics
 - Async evaluation pipeline
 - Alert severity levels
-- Role-based access control
 - Real-time dashboard updates
-- Dockerization
 
 ---
 
-# 7. Conclusion
+# 7. Cool UI/UX features
+- Implemented an automatic warning message generator that uses values for metric name, comparator and threshhold to generate a warning message for User
+<img width="1481" height="405" alt="Screenshot 2026-02-24 at 12 03 14" src="https://github.com/user-attachments/assets/194755b5-6ca2-4312-9aed-17ab3ca1246b" />
+- Trigger warning alerts with 5 second cooldown
+<img width="260" height="245" alt="Screenshot 2026-02-24 at 12 07 37" src="https://github.com/user-attachments/assets/c96da948-7f1b-4dcd-b5cd-76e9c7b5ec94" />
+- System enforces use of metrics with existing rules during simulation so no random values can be sent
+<img width="1504" height="441" alt="Screenshot 2026-02-24 at 12 08 51" src="https://github.com/user-attachments/assets/669cc45d-b4f5-4c41-9b3e-7f2f450b9a12" />
 
-MetricGuard demonstrates:
-
-- Clean full-stack architecture
-- Thoughtful domain modeling
-- Practical reliability handling
-- Extensible system design
-- Production-aware trade-offs
 
 The system is intentionally simple yet structured in a way that enables straightforward scaling and evolution into a distributed alerting engine.
